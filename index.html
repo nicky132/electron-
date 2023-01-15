@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<style>
+			* {
+				padding: 0;
+				margin: 0;
+			}
+			/* .header {
+				height: 40px;
+				width: 100%;
+				color: #ffffff;
+				line-height: 40px;
+				background: #143cfd;
+			} */
+			.btnGroup {
+				line-height: 40px;
+				height: 40px;
+			}
+		</style>
+	</head>
+	<body>
+		<!-- <div class="header">新建窗口</div> -->
+		<div class="btnGroup">
+			<button id="start">开始录制</button>
+			<button id="stop">停止录制</button>
+			<button id="play">播放</button>
+			<button id="send">开启摄像头</button>
+		</div>
+
+		<video src="" class="video"></video>
+		<video src="" width="400" height="500" id="playVideo"></video>
+
+		<script>
+			const { ipcRenderer } = require('electron')
+			// 渲染进程给主线程发送消息
+			document.querySelector('#send').addEventListener('click', function () {
+				ipcRenderer.send('renderer-send-data', '摄像头已经打开')
+				open();
+			})
+			ipcRenderer.on('main-send-reply', (event, data) => {
+				console.log(data)
+			})
+
+			const start = document.querySelector('#start')
+			const stop = document.querySelector('#stop')
+			const play = document.querySelector('#play')
+			const palyVideo = document.querySelector('#playVideo')
+			const originVideo = document.querySelector('.video')
+
+			let stream
+			let blobData = []
+			let recordInstance
+			const open = async () => {
+				//打开摄像头
+				stream = await navigator.mediaDevices.getUserMedia({
+					video: {
+						width: 400,
+						height: 500
+					}
+				})
+				//屏幕共享
+				// const stream = await navigator.mediaDevices.getDisplayMedia({
+				// 	video: true
+				// })
+				console.log('stream----',stream)
+				originVideo.srcObject = stream
+				originVideo.play()
+			}
+			const startRecord = () => {
+				recordInstance = new MediaRecorder(stream, {
+					mimeType: 'video/webm'
+				})
+				console.log('stream2----',stream)
+				if (recordInstance) {
+					recordInstance.start()
+					recordInstance.ondataavailable = function (e) {
+						blobData.push(e.data)
+					}
+					recordInstance.onstop = function (e) {
+						console.log('stop----', blobData)
+					}
+				}
+			}
+			start.addEventListener('click', function () {
+				startRecord()
+			})
+			stop.addEventListener('click', function () {
+				recordInstance && recordInstance.stop()
+			})
+			play.addEventListener('click', function () {
+				const blob = new Blob(blobData, { type: 'video/mp4' })
+				const videoUrl = URL.createObjectURL(blob);
+				palyVideo.src = videoUrl;
+				palyVideo.play()
+			})
+		</script>
+	</body>
+</html>

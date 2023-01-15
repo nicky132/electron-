@@ -1,0 +1,16 @@
+{
+  "name": "quick-app",
+  "version": "1.0.0",
+  "description": "The first electron application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "electron ."
+  },
+  "keywords": [],
+  "author": "nicky",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^18.0.3"
+  }
+}
